@@ -1,13 +1,22 @@
 """Ponto de entrada do simulador.
 
 Uso:
-    python main.py
-    python main.py meus_processos.csv
+    python main.py                              # roda com exemplo_processos.csv
+    python main.py meus.csv                     # usa outro arquivo CSV
+    python main.py --input                      # abre o menu de processos antes de simular
+    python main.py meus.csv --input             # abre o menu com outro arquivo
+    python main.py --verbose sjf                # mostra rastreamento de decisões do SJF
+    python main.py meus.csv --verbose edf
 
 O CSV precisa ter as colunas: id,chegada,execucao,prioridade,deadline
 (deadline pode ficar vazio se o processo não tiver prazo).
+
+Os parâmetros quantum e sobrecarga_contexto são lidos do arquivo .cfg
+gerado pelo menu (mesmo nome do CSV, extensão .cfg). Se não existir,
+usa os valores padrão definidos em SimConfig.
 """
 import csv
+import os
 import sys
 
 from models import Process, SimConfig
@@ -18,6 +27,10 @@ from visualization import plotar_gantt
 from schedulers import FIFO, SJF, PriorityScheduler, RoundRobin, EDF, AlgoritmoEquipe
 
 
+# ---------------------------------------------------------------------------
+# Leitura de arquivos
+# ---------------------------------------------------------------------------
+
 def carregar_processos(caminho_csv: str):
     processos = []
     with open(caminho_csv, newline="", encoding="utf-8") as f:
@@ -27,11 +40,32 @@ def carregar_processos(caminho_csv: str):
                 id=linha["id"].strip(),
                 chegada=float(linha["chegada"]),
                 execucao=float(linha["execucao"]),
-                prioridade=int(linha["prioridade"]) if linha.get("prioridade") not in (None, "") else 0,
+                prioridade=int(linha["prioridade"]) if linha.get("prioridade") not in (None, "") else 1,
                 deadline=float(deadline) if deadline not in (None, "") else None,
             ))
     return processos
 
+
+def carregar_config_simulacao(caminho_csv: str) -> SimConfig:
+    """Lê quantum e sobrecarga do .cfg correspondente ao CSV.
+    Se não existir, usa os valores padrão de SimConfig."""
+    caminho_cfg = os.path.splitext(caminho_csv)[0] + ".cfg"
+    cfg = {"quantum": 2.0, "sobrecarga_contexto": 0.5}
+    if os.path.exists(caminho_cfg):
+        with open(caminho_cfg, encoding="utf-8") as f:
+            for linha in f:
+                linha = linha.strip()
+                if "=" in linha and not linha.startswith("#"):
+                    chave, _, valor = linha.partition("=")
+                    chave, valor = chave.strip(), valor.strip()
+                    if chave in cfg:
+                        cfg[chave] = float(valor)
+    return SimConfig(quantum=cfg["quantum"], sobrecarga_contexto=cfg["sobrecarga_contexto"])
+
+
+# ---------------------------------------------------------------------------
+# Exibição de tabela
+# ---------------------------------------------------------------------------
 
 def imprimir_tabela(linhas):
     if not linhas:
@@ -46,11 +80,38 @@ def imprimir_tabela(linhas):
         print(" | ".join(str(l[c]).ljust(larguras[c]) for c in colunas))
 
 
-def main():
-    caminho_csv = sys.argv[1] if len(sys.argv) > 1 else "exemplo_processos.csv"
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
-    # AJUSTE AQUI: quantum do Round-Robin e custo de cada troca de contexto
-    config = SimConfig(quantum=2.0, sobrecarga_contexto=0.5)
+def main():
+    args = sys.argv[1:]
+    caminho_csv  = "exemplo_processos.csv"
+    verbose_alvo = None
+    abrir_input  = False
+
+    i = 0
+    while i < len(args):
+        if args[i] == "--verbose":
+            verbose_alvo = args[i + 1].lower()
+            i += 2
+        elif args[i] == "--input":
+            abrir_input = True
+            i += 1
+        else:
+            caminho_csv = args[i]
+            i += 1
+
+    # Abre o menu interativo de processos se pedido
+    if abrir_input:
+        from input_processos import menu as menu_input
+        menu_input(caminho_csv)
+
+    # Carrega parâmetros do .cfg gerado pelo menu (ou usa padrão)
+    config = carregar_config_simulacao(caminho_csv)
+
+    print(f"\n  Arquivo  : {caminho_csv}")
+    print(f"  quantum  : {config.quantum}  |  sobrecarga_contexto: {config.sobrecarga_contexto}\n")
 
     algoritmos = [
         FIFO(),
@@ -62,12 +123,20 @@ def main():
     ]
 
     for sched in algoritmos:
-        processos = carregar_processos(caminho_csv)  # recarrega "do zero" a cada algoritmo
-        resultado = simular(processos, sched, config)
+        processos = carregar_processos(caminho_csv)
+        verbose   = verbose_alvo is not None and verbose_alvo in sched.name.lower()
 
         print(f"\n{'=' * 60}")
-        print(f"  {resultado.algoritmo}")
+        print(f"  {sched.name}")
         print(f"{'=' * 60}")
+        if verbose:
+            print("--- rastreamento de decisões de escalonamento ---")
+
+        resultado = simular(processos, sched, config, verbose=verbose)
+
+        if verbose:
+            print("--- fim do rastreamento ---\n")
+
         imprimir_tabela(tabela_processos(resultado))
 
         r = resumo(resultado)
@@ -80,10 +149,11 @@ def main():
         print(f"Estourados       : {r['processos_estourados']}")
         print(f"Tempo total sim. : {r['tempo_total_simulacao']:.2f}")
 
-        nome_arquivo = f"gantt_{resultado.algoritmo.split()[0].lower().replace('/', '_')}.png"
-        plotar_gantt(resultado, nome_arquivo)
-        print(f"Gráfico salvo em : {nome_arquivo}")
+        nome_gantt = f"gantt_{sched.name.split()[0].lower().replace('/', '_')}.png"
+        plotar_gantt(resultado, nome_gantt)
+        print(f"Gráfico salvo em : {nome_gantt}")
 
 
 if __name__ == "__main__":
     main()
+

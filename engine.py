@@ -45,7 +45,8 @@ class ResultadoSimulacao:
     tempo_ocioso: float
 
 
-def simular(processos: List[Process], scheduler: Scheduler, config: SimConfig) -> ResultadoSimulacao:
+def simular(processos: List[Process], scheduler: Scheduler, config: SimConfig,
+            verbose: bool = False) -> ResultadoSimulacao:
     """Roda a simulação completa para um conjunto de processos e um algoritmo."""
     for p in processos:
         p.reset()
@@ -97,6 +98,15 @@ def simular(processos: List[Process], scheduler: Scheduler, config: SimConfig) -
                 adicionar_chegadas(time)
                 continue
             break
+
+        if verbose:
+            def descreve(p):
+                return f"{p.id}(rest={p.restante:.1f}, prio={p.prioridade}, dl={p.deadline})"
+            prontos_str = ", ".join(descreve(p) for p in ready_queue) or "-"
+            rodando_str = descreve(running) if running else "-"
+            print(f"[t={time:5.1f}] prontos=[{prontos_str}]  rodando={rodando_str}"
+                  f"  -> escolhido: {candidato.id}"
+                  f"{'  (TROCA)' if candidato is not running else ''}")
 
         if candidato is not running:
             if running is not None:
