@@ -8,8 +8,12 @@ próprio em `schedulers/custom.py` (substituam pela estratégia da equipe).
 
 ```bash
 pip install matplotlib
-python main.py                      # usa exemplo_processos.csv
-python main.py meus_processos.csv   # usa outro arquivo
+
+Gerenciar processos (abre o menu) -> python input_processos.py
+
+Simular (lê o CSV e o .cfg que o menu gerou) -> python main.py
+
+Ou tudo de uma vez (menu → simulação em sequência) -> python main.py --input
 ```
 
 Saída: tabela de cada processo + resumo (médias, throughput, % ociosidade,
