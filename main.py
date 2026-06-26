@@ -1,7 +1,7 @@
 """Ponto de entrada do simulador.
 
 Uso:
-    python main.py                              # roda com exemplo_processos.csv
+    python main.py                              # roda com processos.csv
     python main.py meus.csv                     # usa outro arquivo CSV
     python main.py --input                      # abre o menu de processos antes de simular
     python main.py meus.csv --input             # abre o menu com outro arquivo
@@ -86,7 +86,7 @@ def imprimir_tabela(linhas):
 
 def main():
     args = sys.argv[1:]
-    caminho_csv  = "exemplo_processos.csv"
+    caminho_csv  = "processos.csv"
     verbose_alvo = None
     abrir_input  = False
 

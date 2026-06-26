@@ -34,7 +34,7 @@ schedulers/round_robin.py
 schedulers/edf.py
 schedulers/custom.py   EXEMPLO — substituam pela lógica da equipe
 main.py                 Amarra tudo, roda todos os algoritmos
-exemplo_processos.csv
+processos.csv
 ```
 
 ## Como o motor funciona (resumo)

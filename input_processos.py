@@ -1,7 +1,7 @@
 """Gerenciador interativo de processos para o simulador.
 
 Uso standalone:
-    python input_processos.py                  # abre o menu usando exemplo_processos.csv
+    python input_processos.py                  # abre o menu usando processos.csv
     python input_processos.py meus.csv         # abre com outro arquivo
 
 Menu:
@@ -288,5 +288,5 @@ def menu(caminho_csv: str):
 
 
 if __name__ == "__main__":
-    caminho = sys.argv[1] if len(sys.argv) > 1 else "exemplo_processos.csv"
+    caminho = sys.argv[1] if len(sys.argv) > 1 else "processos.csv"
     menu(caminho)
