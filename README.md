@@ -1,8 +1,8 @@
 # Simulador de Escalonamento de Processos
 
 Esqueleto funcional para o trabalho. Roda os 5 algoritmos obrigatórios
-(FIFO, SJF, Prioridade, Round-Robin, EDF) + um exemplo de algoritmo
-próprio em `schedulers/custom.py` (substituam pela estratégia da equipe).
+(FIFO, SJF, Prioridade, Round-Robin, EDF) + um algoritmo
+próprio em `schedulers/custom.py` .
 
 ## Como rodar
 
@@ -36,7 +36,7 @@ schedulers/sjf.py
 schedulers/priority.py
 schedulers/round_robin.py
 schedulers/edf.py
-schedulers/custom.py   EXEMPLO — substituam pela lógica da equipe
+schedulers/custom.py   
 main.py                 Amarra tudo, roda todos os algoritmos
 processos.csv
 ```
@@ -60,7 +60,7 @@ Dois detalhes que diferenciam os algoritmos preemptivos no motor:
   inteiro, ou seja, "roda até acabar" a não ser que `preempt_on_arrival`
   corte antes).
 
-## Decisões de projeto já tomadas (documentem/justifiquem no relatório)
+## Decisões de projeto tomadas
 
 1. **`quantum` e `sobrecarga_contexto` são parâmetros globais** da
    simulação (`SimConfig`), não atributos por processo — o enunciado
@@ -68,8 +68,7 @@ Dois detalhes que diferenciam os algoritmos preemptivos no motor:
 2. **Toda troca do processo que ocupa a CPU paga `sobrecarga_contexto`**,
    inclusive a primeira execução (idle → rodando). Se o critério de
    avaliação exigir que a primeira execução não pague overhead, é um
-   ajuste de uma linha em `engine.py` (procure o comentário
-   `# AJUSTE OPCIONAL`).
+   ajuste de uma linha em `engine.py`
 3. **Estouro de deadline não interrompe a execução** — o processo só é
    marcado como atrasado (`deadline_ok = False`) se terminar depois do
    prazo; ele continua rodando normalmente até lá.
@@ -77,20 +76,6 @@ Dois detalhes que diferenciam os algoritmos preemptivos no motor:
    `restante` então `chegada` então `id`; Prioridade por `prioridade`
    (1 = maior) então `chegada` então `id`.
 
-## O que falta vocês implementarem
-
-- [ ] `schedulers/custom.py` — algoritmo próprio da equipe (o atual é só
-      um exemplo de "prioridade com folga dinâmica" pra mostrar como
-      plugar um algoritmo novo)
-- [ ] Modo passo-a-passo opcional (dá pra fazer simples: depois de montar
-      o `log` de segmentos em `ResultadoSimulacao`, é só iterar e dar um
-      `time.sleep()`/print incremental, ou animar com matplotlib)
-- [ ] Bateria de testes comparando os algoritmos em cenários diferentes
-      (alta carga, deadlines apertados, muita sobrecarga de contexto) —
-      é só variar `SimConfig` e o CSV de entrada e rodar `main.py`
-- [ ] Relatório com a análise comparativa (o `main.py` já imprime tudo
-      que vocês precisam: médias, throughput, % ociosidade, trocas de
-      contexto, preempções, processos estourados)
 
 ## Testado
 
